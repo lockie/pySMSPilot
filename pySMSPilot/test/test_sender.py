@@ -39,7 +39,6 @@ class SmspilotTests(unittest.TestCase):
         client.defaultSender = "INFORM"
         client.addSMS(1, TEST_PHONE, u'Some text body')
         result = client.send()
-        print result
         self.assertEqual(result[u'send'][0][u'text'], u'Some text body')
         self.assertEqual(result[u'send'][0][u'to'], TEST_PHONE)
 
@@ -48,18 +47,18 @@ class SmspilotTests(unittest.TestCase):
         try:
             client.addSMS(1, TEST_PHONE, u'Some test text')
         except Exception as inst:
-            self.assertEqual(inst.message, u'SMS with this id already queried')
+            self.assertEqual(str(inst), u'SMS with this id already queried')
         try:
             client.addSMS('invalid_str_id', TEST_PHONE, u'Some test text')
         except Exception as inst:
-            self.assertEqual(inst.message, u'sms_id must be integer')
+            self.assertEqual(str(inst), u'sms_id must be integer')
 
     def testInvalidSendTime(self):
         client = sender.Sender(API)
         try:
             client.addSMS(1, TEST_PHONE, u'Happy birthday!', None, '20.12.2013')
         except Exception as inst:
-            self.assertEqual(inst.message, u'Invalid datetime! Must be GMT timestamp or YYYY-MM-DD HH:MM:SS')
+            self.assertEqual(str(inst), u'Invalid datetime! Must be GMT timestamp or YYYY-MM-DD HH:MM:SS')
 
     def testValidDateTimeSendTime(self):
         client = sender.Sender(API)
@@ -69,14 +68,14 @@ class SmspilotTests(unittest.TestCase):
         result = client.send()
         self.assertEqual(result[u'send'][0][u'text'], u'Happy birthday!')
         self.assertEqual(result[u'send'][0][u'to'], TEST_PHONE)
-        self.assertEquals(send_date.strftime("%Y-%m-%d %H:%M:%S"), result[u'send'][0]['send_datetime'])
+        self.assertEqual(send_date.strftime("%Y-%m-%d %H:%M:%S"), result[u'send'][0]['send_datetime'])
 
     def testTTL(self):
         client = sender.Sender(API)
         try:
             client.addSMS(1, TEST_PHONE, u'Happy birthday!', ttl=10)
             client.addSMS(2, TEST_PHONE, u'Happy birthday!', ttl=1440)
-        except Exception, e:
+        except Exception as e:
             self.fail()
 
         self.assertRaises(Exception, client.addSMS, 3, TEST_PHONE, u'Happy birthday!', ttl=1441)
@@ -86,15 +85,15 @@ class SmspilotTests(unittest.TestCase):
     def test_callback_request(self):
         try:
             client = sender.Sender(API, callback="http://ya.ru/", callback_method="post")
-        except Exception, e:
-            self.fail("Valid callback method but %s" % e.message)
+        except Exception as e:
+            self.fail("Valid callback method but %s" % str(e))
         client.addSMS(1, TEST_PHONE, u'Some test text')
         self.assertEqual(client.messages[0][u'callback'], "http://ya.ru/")
         self.assertEqual(client.messages[0][u'callback_method'], "post")
         try:
             client = sender.Sender(API, callback="http://ya.ru/", callback_method="get")
-        except Exception, e:
-            self.fail("Valid callback method but %s" % e.message)
+        except Exception as e:
+            self.fail("Valid callback method but %s" % str(e))
         client.addSMS(1, TEST_PHONE, u'Some test text')
         self.assertEqual(client.messages[0][u'callback'], "http://ya.ru/")
         self.assertEqual(client.messages[0][u'callback_method'], "get")
@@ -102,7 +101,7 @@ class SmspilotTests(unittest.TestCase):
     def test_balance(self):
         client = sender.Sender(API)
         result = client.checkBalance()
-        self.assertIsInstance(result[u'balance'], int)
+        self.assertIsInstance(result[u'balance'], float)
 
     def test_callback(self):
         # set method without url
@@ -114,8 +113,8 @@ class SmspilotTests(unittest.TestCase):
 
         try:
             client = sender.Sender(API, callback="http://ya.ru/")
-        except Exception, e:
-            self.fail("Valid callback but %s" % e.message)
+        except Exception as e:
+            self.fail("Valid callback but %s" % str(e))
 
     def testMultiSend(self):
         client = sender.Sender(API)

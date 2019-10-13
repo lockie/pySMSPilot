@@ -7,7 +7,10 @@ v. 1.3.2
 """
 
 import json
-import urllib2
+try:
+    import urllib.request as urllib2
+except ImportError:
+    import urllib2
 import re
 import datetime
 
@@ -73,7 +76,7 @@ class Sender:
         if not self._checkSender(sender):
             raise Exception(u"Invalid sender name or phone")
         if not (send_datetime is None):
-            if isinstance(send_datetime, str) or isinstance(send_datetime, unicode):
+            if isinstance(send_datetime, str):
                 send_datetime = self._checkDate(send_datetime)
             elif isinstance(send_datetime, datetime.datetime):
                 send_datetime = send_datetime.strftime("%Y-%m-%d %H:%M:%S")
@@ -115,7 +118,7 @@ class Sender:
     def callServer(self, data):
         request = urllib2.Request(
             self.service_url,
-            json.dumps(data),
+            json.dumps(data).encode("utf-8"),
             headers=self.headers
         )
         result = urllib2.urlopen(request)
